@@ -9,7 +9,7 @@ def main():
     applications = app_registrations.get_applications()
     parsed_apps = app_registrations.parse_applications(applications)
     expired_app_secrets = app_registrations.get_expired_app_secrets(parsed_apps)
-    
+
     email_sender = EmailSender()
 
     if expired_app_secrets:
