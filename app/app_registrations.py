@@ -1,7 +1,7 @@
 from azure.identity import DefaultAzureCredential
 from msgraph.core import GraphClient
 
-from settings import Settings
+import settings
 
 from datetime import datetime
 
@@ -11,9 +11,7 @@ class AppRegistrations:
     Class to handle the Azure AD App Registrations.
     """
     def __init__(self):
-        self.settings = Settings()
-        self.credential = DefaultAzureCredential()
-        self.graph_client = GraphClient(credential=self.credential)
+        self.graph_client = GraphClient(credential=DefaultAzureCredential())
 
     def is_expired(self, end_date_time):
         # end_date_time can contain a dot or not, so we need to check for both cases
@@ -21,7 +19,7 @@ class AppRegistrations:
             end_date_time = datetime.strptime(end_date_time, "%Y-%m-%dT%H:%M:%S.%fZ")
         else:
             end_date_time = datetime.strptime(end_date_time, "%Y-%m-%dT%H:%M:%S%fZ")
-        return self.settings.EXPIRE_DAYS >= (end_date_time - datetime.now()).days
+        return settings.EXPIRE_DAYS >= (end_date_time - datetime.now()).days
 
     def get_applications(self):
         applications = self.graph_client.get('/applications?$select=id,displayName,passwordCredentials')
@@ -29,14 +27,11 @@ class AppRegistrations:
         return applications.json()
 
     def parse_applications(self, applications):
-        parsed_applications = []
-        for application in applications['value']:
-            parsed_applications.append({
-                'id': application['id'],
-                'displayName': application['displayName'],
-                'passwordCredentials': application['passwordCredentials']
-            })
-        return parsed_applications
+        return [{
+                    'id': application['id'],
+                    'displayName': application['displayName'],
+                    'passwordCredentials': application['passwordCredentials']
+                } for application in applications['value']]
 
     def get_expired_app_secrets(self, applications):
         expired_app_secrets = []

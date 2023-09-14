@@ -1,4 +1,4 @@
-from settings import Settings
+import settings
 
 from smtplib import SMTP_SSL as SMTP
 from email.mime.text import MIMEText
@@ -11,23 +11,16 @@ class EmailSender:
     Class to handle the email sending.
     """
     def __init__(self):
-        self.settings = Settings()
-        self.email_host = self.settings.EMAIL_HOST
-        self.email_from = self.settings.EMAIL_FROM
-        self.email_from_name = self.settings.EMAIL_FROM_NAME
-        self.email_to = self.settings.EMAIL_TO
-        self.email_username = self.settings.EMAIL_USERNAME
-        self.email_password = self.settings.EMAIL_PASSWORD
-        self.connection = SMTP(self.email_host)
-        self.mailjet = Client(auth=(self.email_username, self.email_password), version='v3.1')
+        self.connection = SMTP(settings.EMAIL_HOST)
+        self.mailjet = Client(auth=(settings.EMAIL_USERNAME, settings.EMAIL_PASSWORD), version='v3.1')
 
     def send_email(self, email_body):
-        self.connection.login(self.email_username, self.email_password)
+        self.connection.login(settings.EMAIL_USERNAME, settings.EMAIL_PASSWORD)
         message = MIMEText(email_body, 'html')
         message['Subject'] = 'Expired App Secrets'
-        message['From'] = f'{self.email_from_name} <{self.email_from}>'
-        message['To'] = self.email_to
-        result = self.connection.sendmail(self.email_from, self.email_to, message.as_string())
+        message['From'] = f'{settings.EMAIL_FROM_NAME} <{settings.EMAIL_FROM}>'
+        message['To'] = settings.EMAIL_TO
+        result = self.connection.sendmail(settings.EMAIL_FROM, settings.EMAIL_TO, message.as_string())
         self.connection.quit()
         return result
 
@@ -36,17 +29,17 @@ class EmailSender:
             'Messages': [
                     {
                         "From": {
-                            "Email": f"{self.email_from}",
-                            "Name": f"{self.email_from_name}"
+                            "Email": settings.EMAIL_FROM,
+                            "Name": settings.EMAIL_FROM_NAME
                         },
                         "To": [
                             {
-                                "Email": f"{self.email_to}"
+                                "Email": settings.EMAIL_TO,
                             }
                         ],
                         "Subject": "Your app secrets are about to expire!",
-                        "TextPart": f"{email_body}",
-                        "HTMLPart": f"{email_body}"
+                        "TextPart": email_body,
+                        "HTMLPart": email_body
                     }
                 ]
         }
